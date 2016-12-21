@@ -5,6 +5,7 @@ import time
 import datetime
 import scnn_utils
 
+
 class SentimentCNN(object):
     """
     Constructs a Convolutional Neural Network for sentiment analysis.

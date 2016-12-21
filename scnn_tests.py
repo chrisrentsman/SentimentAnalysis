@@ -22,7 +22,7 @@ def rt_movie_reviews_demo(test_ratio, embedding_size, filter_sizes,
     print("Vocabulary Size: {:d}".format(vocab_length))
     print("Train/Dev split: {:d}/{:d}".format(len(y_train), len(y_test)))
 
-    cnn = SentimentCNN(
+    scnn = SentimentCNN(
         sequence_length=x_train.shape[1],
         num_classes=y_train.shape[1],
         vocab_size=vocab_length,
@@ -31,7 +31,7 @@ def rt_movie_reviews_demo(test_ratio, embedding_size, filter_sizes,
         num_filters=num_filters
     )
 
-    cnn.run(x_train, y_train, x_test, y_test, batch_size, num_epochs, eval_at, keep_prob)
+    scnn.run(x_train, y_train, x_test, y_test, batch_size, num_epochs, eval_at, keep_prob)
 
 
 def twitter_corpus_demo(num_inputs, test_ratio, embedding_size, filter_sizes,
@@ -52,7 +52,7 @@ def twitter_corpus_demo(num_inputs, test_ratio, embedding_size, filter_sizes,
     print("Vocabulary Size: {:d}".format(vocab_length))
     print("Train/Dev split: {:d}/{:d}".format(len(y_train), len(y_test)))
 
-    cnn = SentimentCNN(
+    scnn = SentimentCNN(
         sequence_length=x_train.shape[1],
         num_classes=y_train.shape[1],
         vocab_size=vocab_length,
@@ -61,7 +61,7 @@ def twitter_corpus_demo(num_inputs, test_ratio, embedding_size, filter_sizes,
         num_filters=num_filters
     )
 
-    cnn.run(x_train, y_train, x_test, y_test, batch_size, num_epochs, eval_at, keep_prob)
+    scnn.run(x_train, y_train, x_test, y_test, batch_size, num_epochs, eval_at, keep_prob)
 
 
 def stanford_movie_reviews_demo(test_ratio, embedding_size, filter_sizes,
@@ -90,7 +90,7 @@ def stanford_movie_reviews_demo(test_ratio, embedding_size, filter_sizes,
     print("Vocabulary Size: {:d}".format(vocab_length))
     print("Train/Dev split: {:d}/{:d}".format(len(y_train), len(y_test)))
 
-    cnn = SentimentCNN(
+    scnn = SentimentCNN(
         sequence_length=x_train.shape[1],
         num_classes=y_train.shape[1],
         vocab_size=vocab_length,
@@ -99,13 +99,12 @@ def stanford_movie_reviews_demo(test_ratio, embedding_size, filter_sizes,
         num_filters=num_filters
     )
 
-    cnn.run(x_train, y_train, x_test, y_test, batch_size, num_epochs, eval_at, keep_prob)
+    scnn.run(x_train, y_train, x_test, y_test, batch_size, num_epochs, eval_at, keep_prob)
 
 
 if __name__ == "__main__":
 
-    twitter_corpus_demo(
-        num_inputs=10000,
+    rt_movie_reviews_demo(
         test_ratio=0.2,
         embedding_size=128,
         filter_sizes=[3,4,5],
