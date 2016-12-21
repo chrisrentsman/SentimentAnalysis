@@ -104,7 +104,8 @@ def stanford_movie_reviews_demo(test_ratio, embedding_size, filter_sizes,
 
 if __name__ == "__main__":
 
-    rt_movie_reviews_demo(
+    twitter_corpus_demo(
+        num_inputs=10000,
         test_ratio=0.2,
         embedding_size=128,
         filter_sizes=[3,4,5],

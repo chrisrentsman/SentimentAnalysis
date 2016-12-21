@@ -4,7 +4,6 @@ import os
 import time
 import datetime
 import scnn_utils
-from tensorflow.contrib import learn
 
 class SentimentCNN(object):
     """
@@ -46,18 +45,18 @@ class SentimentCNN(object):
             # Activation Layer
             h = tf.nn.relu(tf.nn.bias_add(conv, b))
 
-            # Pooling
+            # Narrow pooling
             pooled = self.max_pooling_step(h, 
                 [1, sequence_length - filter_size + 1, 1, 1])
             pooled_outputs.append(pooled)
 
         # Densely connected layer
         num_filters_total = num_filters * len(filter_sizes)
-        h_pool_flat = tf.reshape(tf.concat(3, pooled_outputs), [-1, num_filters_total])
+        h_pool = tf.reshape(tf.concat(3, pooled_outputs), [-1, num_filters_total])
 
         # Add dropout
         self.keep_prob = tf.placeholder(tf.float32)
-        self.h_drop = tf.nn.dropout(h_pool_flat, self.keep_prob)
+        self.h_drop = tf.nn.dropout(h_pool, self.keep_prob)
 
         # Guess outputs
         W_output = self.weight_variable([num_filters_total, num_classes])
@@ -78,13 +77,33 @@ class SentimentCNN(object):
         self.grads_and_vars = self.optimizer.compute_gradients(self.loss)
         self.train = self.optimizer.apply_gradients(self.grads_and_vars, 
             global_step=self.global_step)
+
+        # Output directory for models and summaries
+        timestamp = str(int(time.time()))
+        out_dir = os.path.abspath(os.path.join(os.path.curdir, "runs", timestamp))
+        print ("Writing to {}\n".format(out_dir))
+
+        # Summaries for loss and accuracy
+        loss_summary = tf.scalar_summary("loss", self.loss)
+        acc_summary = tf.scalar_summary("accuracy", self.accuracy)
+
+        # Train Summaries
+        self.summarize_train = tf.merge_summary([loss_summary, acc_summary])
+        train_summary_dir = os.path.join(out_dir, "summaries", "train")
+        self.train_writer = tf.train.SummaryWriter(train_summary_dir,self.sess.graph)
+
+        # Dev Summaries
+        self.summarize_eval = tf.merge_summary([loss_summary, acc_summary])
+        eval_summary_dir = os.path.join(out_dir, "summaries", "eval")
+        self.eval_writer = tf.train.SummaryWriter(eval_summary_dir, self.sess.graph)
+
         self.sess.run(tf.initialize_all_variables())
 
     def run(self, x_input, y_input, x_test, y_test, batch_size, num_epochs, 
         eval_step, keep_prob):
         """Runs the entire neural network on given input."""
 
-        batches = scnn_utils.batch_iter(list(zip(x_input, y_input)), 
+        batches = scnn_utils.make_batches(list(zip(x_input, y_input)), 
             batch_size, num_epochs)
 
         for batch in batches:
@@ -107,12 +126,14 @@ class SentimentCNN(object):
             self.keep_prob: keep_prob
         }
 
-        _, step, loss, accuracy = self.sess.run(
-            [self.train, self.global_step, self.loss, self.accuracy],
+        _, step, summaries, loss, accuracy = self.sess.run(
+            [self.train, self.global_step, self.summarize_train,
+            self.loss, self.accuracy],
             feed_dict
         )
 
         current_time = datetime.datetime.now().isoformat()
+        self.train_writer.add_summary(summaries, step)
         return (current_time, step, loss, accuracy)
 
     def test_step(self, x_batch, y_batch):
@@ -124,12 +145,13 @@ class SentimentCNN(object):
             self.keep_prob: 1.0
         }
 
-        step, loss, accuracy = self.sess.run(
-            [self.global_step, self.loss, self.accuracy],
+        step, summaries, loss, accuracy = self.sess.run(
+            [self.global_step, self.summarize_eval, self.loss, self.accuracy],
             feed_dict
         )
 
         current_time = datetime.datetime.now().isoformat()
+        self.eval_writer.add_summary(summaries, step)
         return (current_time, step, loss, accuracy)
 
     def weight_variable(self, shape):
